@@ -1,174 +1,123 @@
-# ntopng-network-monitoring-stack
+# 📡 ntopng-network-monitoring-stack
 
-📡 ntopng-network-monitoring-stack
+A production-ready Docker-based network monitoring stack featuring **ntopng**, a secure **Nginx HTTPS reverse proxy**, and a persistent **Redis backend** to ensure stable configuration and prevent admin password resets. This setup supports reliable **NetFlow v9/IPFIX ingestion** from MikroTik routers or any compatible network device.
 
-A production-ready, Docker-based network monitoring stack featuring ntopng, a secure Nginx HTTPS reverse proxy, and a persistent Redis backend to prevent configuration and password resets.
-This project is designed to reliably collect and analyze NetFlow v9 / IPFIX data from MikroTik routers or any compatible network device.
+---
 
-🚀 Overview
+## 🚀 Overview
 
-This repository provides a fully isolated, containerized monitoring environment built around ntopng.
-The architecture focuses on:
+This project provides an isolated, maintainable, and scalable network monitoring environment built with Docker Compose. Its primary goal is to deliver a **reliable ntopng deployment** that:
+- Keeps credentials and settings safe (Redis persistence)
+- Supports HTTPS access securely (Nginx reverse proxy)
+- Receives NetFlow/sFlow/IPFIX data without interruption
+- Works consistently across restarts and container recreation
 
-Security (HTTPS reverse proxy)
+---
 
-Persistence (Redis for stable configuration & credentials)
+## 🧱 Architecture
 
-Reliability (NetFlow ingestion)
+The stack contains three core services:
 
-Portability (Docker-based stack)
+### 🔹 ntopng  
+The main monitoring and analytics engine responsible for processing network flow data.
 
-Clean separation of components
+### 🔹 Redis  
+Stores ntopng settings and user credentials. Running Redis separately prevents the common issue of admin password resets.
 
-The stack is production-grade, easy to deploy, and suitable for real operational use.
+### 🔹 Nginx  
+Acts as an HTTPS reverse proxy to secure external access to ntopng.  
+Handles:
+- SSL termination  
+- HTTP → HTTPS redirection  
+- Clean routing to ntopng’s internal web UI  
 
-🧱 Architecture
+---
 
-The stack consists of three core services:
+## 🐳 Docker Composition
 
-🔹 1. ntopng (Network Monitoring Engine)
+- Containers are isolated via a dedicated Docker network.  
+- Volumes ensure persistent ntopng/Redis data.  
+- Nginx exposes ports **80/443**.  
+- ntopng exposes port **3000** for the UI.  
 
-Runs as the main analytics system.
-Processes NetFlow/IPFIX packets and provides a web dashboard.
+---
 
-🔹 2. Redis (Persistent Database)
+## 📁 Project Structure
 
-Stores:
+/ntopng-network-monitoring-stack
+├── docker-compose.yml
+├── README.md
+├── nginx/
+│ ├── conf.d/ # Reverse proxy configs
+│ └── certs/ # SSL certificates (ignored in Git)
+└── volumes/
+├── ntopng_data
+├── ntopng_conf
+└── redis_data
 
-User accounts (including admin)
 
-Application settings
+---
 
-Internal ntopng runtime data
+## ✨ Key Features
 
-Running Redis externally prevents the common issue of admin password reset when the ntopng container is recreated.
+### 🔐 Secure HTTPS Access via Nginx
+- SSL certificate support  
+- HTTP → HTTPS redirection  
+- Protects ntopng behind a proxy layer  
 
-🔹 3. Nginx (HTTPS Reverse Proxy)
+### 🛢 Persistent Redis Backend
+- Stores ntopng users, settings, and runtime data  
+- Ensures admin password never resets  
 
-Provides:
+### 📡 NetFlow v9/IPFIX Collector
+- Fully supports MikroTik NetFlow v9  
+- Verified using tcpdump  
+- Collector configured through ntopng UI  
 
-Secure access through SSL (HTTPS)
+### 🛠 Clean & Maintainable Architecture
+- No deprecated CLI flags  
+- Stability-first design  
+- UI-based collector configuration  
 
-HTTP→HTTPS redirection
+---
 
-Clean routing to ntopng’s web interface
+## 🧩 Challenges & Solutions
 
-Isolation between frontend entry point and backend monitoring engine
+### ✔ Preventing Admin Password Reset  
+Dedicated Redis container with persistent volume.
 
-🐳 Docker Composition Summary
+### ✔ Avoiding Nginx 502 Errors  
+Ensured ntopng starts cleanly by removing unsupported arguments.
 
-docker-compose.yml defines all services
+### ✔ Ensuring NetFlow Reception  
+Validated using tcpdump and configured collector in the ntopng UI.
 
-Volumes ensure no data loss
+### ✔ Solving Deprecated ntopng Flags  
+Used UI instead of broken CLI flags.
 
-Nginx exposes ports 80/443
+---
 
-ntopng exposes 3000 (UI) and optionally 2055/udp (NetFlow Collector)
+## 🚀 Deployment
 
-Redis exposes its internal storage only through Docker network
-
-🔐 Security Features
-
-HTTPS enabled via Nginx
-
-Certificates stored outside the repository (nginx/certs/)
-
-Reverse proxy blocks direct ntopng exposure
-
-Redis isolated inside Docker network
-
-📡 NetFlow / IPFIX Support
-
-This system can ingest network flow data such as:
-
-NetFlow v9
-
-IPFIX
-
-sFlow (optional)
-
-Typical use case:
-MikroTik RouterOS exporting NetFlow v9 to the ntopng collector.
-
-⚙️ Key Functionalities
-
-Fully automated deployment with Docker Compose
-
-Persistent ntopng configuration and credentials
-
-Zero password resets due to Redis isolation
-
-Secure HTTPS interface through Nginx
-
-Flow ingestion validated using tcpdump
-
-Clean logging and stable behavior even during restarts
-
-🧩 Challenges & Solutions
-✔ 1. ntopng admin password resetting
-
-Cause: Redis data being lost or ntopng reinitialization
-Solution: Dedicated Redis container with persistent volume
-
-✔ 2. 502 Bad Gateway on Nginx
-
-Cause: ntopng failing to start due to wrong CLI arguments
-Solution: Minimal configuration and stable startup sequence
-
-✔ 3. NetFlow packets reaching Linux but not ntopng
-
-Cause: Collector not configured correctly inside ntopng
-Solution: Activating collector through ntopng UI instead of CLI arguments
-
-✔ 4. Deprecated ntopng flags
-
-Cause: Outdated tutorials and broken parameters
-Solution: Moving to UI-based collector configuration and minimal --redis argument only
-
-📂 Project Structure
-/
-┣━ docker-compose.yml
-┣━ README.md
-┣━ nginx/
-┃   ┣━ conf.d/         # Reverse proxy config
-┃   ┗━ certs/          # SSL certificates (ignored in Git)
-┗━ volumes:
-    ┣━ ntopng_data
-    ┣━ ntopng_conf
-    ┗━ redis_data
-
-    
-🚀 Deployment
-
-Start the entire monitoring stack:
-
+### Start the stack:
+```bash
 docker compose up -d
+```
+Stop the stack:
 
-Stop:
-
+```bash
 docker compose down
+```
+## 🛡 .gitignore Recommendations
 
-📡 Configure NetFlow on ntopng
-
-/ip traffic-flow
-set enabled=yes
-
-/ip traffic-flow target
-add address=SERVER_IP:2055 version=9
-
-🛡 .gitignore Recommendations
-
+```bash
 nginx/certs/
 *.pem
 *.key
+```
 
-## 🧑‍💻 Author
-**Hamidreza Safarpour**  
-Network & DevOps Engineer  
+## 👨‍💻 Author
+
+## Hamidreza Safarpour
+Network & DevOps Engineer
 GitHub: https://github.com/sphamid
-
-📄 License
-
-This project is open-source and can be adapted for production or educational use.
-
-
