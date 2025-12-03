@@ -108,6 +108,17 @@ Stop the stack:
 ```bash
 docker compose down
 ```
+
+##📡 Configure NetFlow on MikroTik
+
+```bash
+/ip traffic-flow set enabled=yes
+```
+
+```bash
+/ip traffic-flow target add address=SERVER_IP:2055 version=9
+```
+
 ## 🛡 .gitignore Recommendations
 
 ```bash
